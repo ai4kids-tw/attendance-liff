@@ -611,10 +611,15 @@
       }
 
       try {
-        const res = await fetch(CONFIG.GAS_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload),
+        // 用 GET + URL 參數（繞過 CORS preflight）
+        const params = new URLSearchParams({ action: 'punch' });
+        for (const [k, v] of Object.entries(payload)) {
+          if (v !== null && v !== undefined && v !== '') {
+            params.append(k, v);
+          }
+        }
+        const res = await fetch(`${CONFIG.GAS_URL}?${params}`, {
+          method: 'GET',
           redirect: 'follow'
         });
         const data = await res.json();
