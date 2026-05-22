@@ -1,0 +1,693 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#02bdc7">
+  <title>AI4Kids 打卡</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700;900&display=swap" rel="stylesheet">
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    :root {
+      --cyan: #02bdc7;
+      --cyan-dark: #019aa3;
+      --cyan-light: #e8f8f9;
+      --dark: #0A1A2E;
+      --gray: #54595f;
+      --gray-light: #f5f5f5;
+      --green: #22c55e;
+      --green-dark: #16a34a;
+      --red: #ef4444;
+      --red-dark: #dc2626;
+      --yellow: #f59e0b;
+      --bg: #fafbfc;
+    }
+
+    body {
+      font-family: "Noto Sans TC", -apple-system, BlinkMacSystemFont, sans-serif;
+      background: var(--bg);
+      color: var(--dark);
+      min-height: 100vh;
+      padding: 20px 16px 40px;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+    }
+
+    .brand {
+      font-size: 12px;
+      letter-spacing: 0.2em;
+      color: var(--cyan);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    .greeting {
+      font-size: 24px;
+      font-weight: 700;
+      color: var(--dark);
+      margin-bottom: 4px;
+    }
+
+    .greeting .name {
+      color: var(--cyan);
+    }
+
+    .work-type {
+      display: inline-block;
+      padding: 3px 10px;
+      background: var(--cyan-light);
+      color: var(--cyan-dark);
+      border-radius: 12px;
+      font-size: 11px;
+      font-weight: 700;
+      margin-top: 4px;
+    }
+
+    /* Clock */
+    .clock-box {
+      background: linear-gradient(135deg, #0A1A2E 0%, #1a3050 100%);
+      border-radius: 20px;
+      padding: 24px 20px;
+      margin-bottom: 24px;
+      color: white;
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(10, 26, 46, 0.15);
+    }
+
+    .clock-date {
+      font-size: 13px;
+      opacity: 0.7;
+      margin-bottom: 4px;
+    }
+
+    .clock-time {
+      font-size: 42px;
+      font-weight: 900;
+      letter-spacing: 0.02em;
+      font-variant-numeric: tabular-nums;
+    }
+
+    .clock-time .colon {
+      animation: blink 1s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0.3; }
+    }
+
+    /* Punch buttons */
+    .btn-group {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 24px;
+    }
+
+    .btn-punch {
+      border: none;
+      border-radius: 16px;
+      padding: 24px 12px;
+      font-family: inherit;
+      font-size: 20px;
+      font-weight: 700;
+      color: white;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .btn-punch:active {
+      transform: scale(0.97);
+    }
+
+    .btn-punch:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    .btn-in {
+      background: linear-gradient(135deg, var(--green) 0%, var(--green-dark) 100%);
+    }
+
+    .btn-out {
+      background: linear-gradient(135deg, var(--red) 0%, var(--red-dark) 100%);
+    }
+
+    .btn-punch .icon {
+      font-size: 32px;
+    }
+
+    .btn-punch .label {
+      font-size: 18px;
+    }
+
+    .btn-punch .hint {
+      font-size: 11px;
+      opacity: 0.85;
+      font-weight: 500;
+    }
+
+    /* Today's records */
+    .section {
+      background: white;
+      border-radius: 16px;
+      padding: 20px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+      border: 1px solid #eef0f2;
+    }
+
+    .section-title {
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--gray);
+      margin-bottom: 12px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .section-title .count {
+      background: var(--cyan-light);
+      color: var(--cyan-dark);
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: 11px;
+    }
+
+    .punch-list {
+      list-style: none;
+    }
+
+    .punch-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid #f0f1f3;
+    }
+
+    .punch-item:last-child {
+      border-bottom: none;
+    }
+
+    .punch-time {
+      font-size: 18px;
+      font-weight: 700;
+      font-variant-numeric: tabular-nums;
+      color: var(--dark);
+    }
+
+    .punch-type {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 12px;
+      border-radius: 12px;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .punch-type.in {
+      background: #dcfce7;
+      color: var(--green-dark);
+    }
+
+    .punch-type.out {
+      background: #fee2e2;
+      color: var(--red-dark);
+    }
+
+    .empty-state {
+      text-align: center;
+      padding: 24px 0;
+      color: #9ca3af;
+      font-size: 14px;
+    }
+
+    /* Loading / Toast */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(10, 26, 46, 0.6);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1000;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 0.2s ease;
+      backdrop-filter: blur(4px);
+    }
+
+    .overlay.show {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .toast-card {
+      background: white;
+      border-radius: 20px;
+      padding: 32px 28px;
+      max-width: 320px;
+      width: 90%;
+      text-align: center;
+      transform: scale(0.9);
+      transition: transform 0.2s ease;
+    }
+
+    .overlay.show .toast-card {
+      transform: scale(1);
+    }
+
+    .toast-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      margin: 0 auto 16px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+    }
+
+    .toast-icon.success {
+      background: #dcfce7;
+      color: var(--green-dark);
+    }
+
+    .toast-icon.error {
+      background: #fee2e2;
+      color: var(--red-dark);
+    }
+
+    .toast-icon.loading {
+      background: var(--cyan-light);
+      color: var(--cyan);
+    }
+
+    .toast-icon.loading .spinner {
+      width: 32px;
+      height: 32px;
+      border: 4px solid var(--cyan-light);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin {
+      to { transform: rotate(360deg); }
+    }
+
+    .toast-title {
+      font-size: 18px;
+      font-weight: 700;
+      margin-bottom: 6px;
+      color: var(--dark);
+    }
+
+    .toast-msg {
+      font-size: 14px;
+      color: var(--gray);
+      line-height: 1.5;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      margin-top: 24px;
+      font-size: 11px;
+      color: #9ca3af;
+    }
+
+    .footer .userid {
+      font-family: 'SF Mono', Menlo, Monaco, monospace;
+      font-size: 9px;
+      opacity: 0.5;
+      margin-top: 4px;
+      word-break: break-all;
+    }
+
+    /* Initial loading */
+    .init-screen {
+      position: fixed;
+      inset: 0;
+      background: var(--bg);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      gap: 16px;
+    }
+
+    .init-screen .spinner {
+      width: 40px;
+      height: 40px;
+      border: 4px solid var(--cyan-light);
+      border-top-color: var(--cyan);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    .init-screen .msg {
+      color: var(--gray);
+      font-size: 14px;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- 載入畫面 -->
+  <div id="initScreen" class="init-screen">
+    <div class="spinner"></div>
+    <div class="msg">系統載入中...</div>
+  </div>
+
+  <!-- 主要內容 -->
+  <div class="container hidden" id="mainContent">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="brand">AI4KIDS · 打卡系統</div>
+      <div class="greeting">
+        <span class="name" id="employeeName">--</span> 您好
+      </div>
+      <div class="work-type" id="workTypeBadge">--</div>
+    </div>
+
+    <!-- 即時時鐘 -->
+    <div class="clock-box">
+      <div class="clock-date" id="clockDate">2026 年 5 月 22 日 星期五</div>
+      <div class="clock-time" id="clockTime">--<span class="colon">:</span>--<span class="colon">:</span>--</div>
+    </div>
+
+    <!-- 打卡按鈕 -->
+    <div class="btn-group">
+      <button class="btn-punch btn-in" id="btnIn" onclick="punchCard('上班')">
+        <div class="icon">🟢</div>
+        <div class="label">上班打卡</div>
+        <div class="hint">CLOCK IN</div>
+      </button>
+      <button class="btn-punch btn-out" id="btnOut" onclick="punchCard('下班')">
+        <div class="icon">🔴</div>
+        <div class="label">下班打卡</div>
+        <div class="hint">CLOCK OUT</div>
+      </button>
+    </div>
+
+    <!-- 今日紀錄 -->
+    <div class="section">
+      <div class="section-title">
+        今日打卡紀錄
+        <span class="count" id="punchCount">0 筆</span>
+      </div>
+      <ul class="punch-list" id="punchList">
+        <li class="empty-state">尚無打卡紀錄</li>
+      </ul>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+      AI4Kids 員工打卡系統 v1.0
+      <div class="userid" id="userIdDisplay"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div class="overlay" id="overlay">
+    <div class="toast-card">
+      <div class="toast-icon" id="toastIcon"><div class="spinner"></div></div>
+      <div class="toast-title" id="toastTitle">處理中</div>
+      <div class="toast-msg" id="toastMsg">請稍候...</div>
+    </div>
+  </div>
+
+  <script>
+    // ============================================================
+    // CONFIG - 部署前修改這兩個值
+    // ============================================================
+    const CONFIG = {
+      LIFF_ID: '2010169818-qYbWmng9',
+      GAS_URL: 'https://script.google.com/macros/s/AKfycbxiobAkD7hR213v1umXfjDkZT5DPNvq_aJx6Fi8FqtcvpftABmcxA9yKLiijfukptW5lw/exec'
+    };
+
+    // ============================================================
+    // 全域變數
+    // ============================================================
+    let currentUser = null;
+    let currentEmployee = null;
+
+    // ============================================================
+    // 時鐘
+    // ============================================================
+    function updateClock() {
+      const now = new Date();
+      const y = now.getFullYear();
+      const m = now.getMonth() + 1;
+      const d = now.getDate();
+      const weekDays = ['日', '一', '二', '三', '四', '五', '六'];
+      const w = weekDays[now.getDay()];
+      const h = String(now.getHours()).padStart(2, '0');
+      const mi = String(now.getMinutes()).padStart(2, '0');
+      const s = String(now.getSeconds()).padStart(2, '0');
+
+      document.getElementById('clockDate').textContent = `${y} 年 ${m} 月 ${d} 日 星期${w}`;
+      document.getElementById('clockTime').innerHTML = `${h}<span class="colon">:</span>${mi}<span class="colon">:</span>${s}`;
+    }
+
+    setInterval(updateClock, 1000);
+    updateClock();
+
+    // ============================================================
+    // LIFF 初始化
+    // ============================================================
+    async function initLiff() {
+      try {
+        await liff.init({ liffId: CONFIG.LIFF_ID });
+
+        if (!liff.isLoggedIn()) {
+          liff.login();
+          return;
+        }
+
+        const profile = await liff.getProfile();
+        currentUser = profile;
+
+        document.getElementById('userIdDisplay').textContent = profile.userId;
+
+        // 載入員工資料 + 今日打卡
+        await loadEmployeeData();
+
+      } catch (err) {
+        showToast('error', '載入失敗', err.message || '無法初始化系統');
+      }
+    }
+
+    // ============================================================
+    // 載入員工資料 (打 GAS doGet)
+    // ============================================================
+    async function loadEmployeeData() {
+      try {
+        const url = `${CONFIG.GAS_URL}?userId=${currentUser.userId}`;
+        const res = await fetch(url, { method: 'GET' });
+        const data = await res.json();
+
+        if (!data.ok) {
+          showInitError(data.message || '尚未綁定，請聯絡 HR');
+          return;
+        }
+
+        currentEmployee = data.employee;
+
+        // 顯示主畫面
+        document.getElementById('employeeName').textContent = data.employee.name;
+        document.getElementById('workTypeBadge').textContent = formatWorkType(data.employee.workType);
+
+        renderPunches(data.punches || []);
+
+        // 切換到主畫面
+        document.getElementById('initScreen').classList.add('hidden');
+        document.getElementById('mainContent').classList.remove('hidden');
+
+      } catch (err) {
+        showInitError('連線失敗：' + err.message);
+      }
+    }
+
+    function showInitError(msg) {
+      document.getElementById('initScreen').innerHTML = `
+        <div style="text-align:center;padding:20px;">
+          <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
+          <div style="font-size:16px;color:#0A1A2E;font-weight:700;margin-bottom:8px;">無法載入</div>
+          <div style="font-size:14px;color:#54595f;line-height:1.5;">${msg}</div>
+        </div>
+      `;
+    }
+
+    function formatWorkType(type) {
+      const map = { ONSITE: '駐點員工', REMOTE: '遠端員工', HYBRID: '混合工作' };
+      return map[type] || type;
+    }
+
+    // ============================================================
+    // 渲染今日打卡紀錄
+    // ============================================================
+    function renderPunches(punches) {
+      const list = document.getElementById('punchList');
+      const count = document.getElementById('punchCount');
+      count.textContent = `${punches.length} 筆`;
+
+      if (punches.length === 0) {
+        list.innerHTML = '<li class="empty-state">尚無打卡紀錄</li>';
+        return;
+      }
+
+      list.innerHTML = punches.map(p => `
+        <li class="punch-item">
+          <span class="punch-time">${p.time}</span>
+          <span class="punch-type ${p.type === '上班' ? 'in' : 'out'}">
+            ${p.type === '上班' ? '↑ 上班' : '↓ 下班'}
+          </span>
+        </li>
+      `).join('');
+    }
+
+    // ============================================================
+    // 打卡 (打 GAS doPost)
+    // ============================================================
+    async function punchCard(type) {
+      if (!currentUser || !currentEmployee) {
+        showToast('error', '請稍候', '系統尚未載入完成');
+        return;
+      }
+
+      showToast('loading', '處理中', '請稍候...');
+
+      const payload = {
+        userId: currentUser.userId,
+        type: type,
+        userAgent: navigator.userAgent
+      };
+
+      // 駐點員工 + 混合員工 → 嘗試取得 GPS
+      if (currentEmployee.workType === 'ONSITE' || currentEmployee.workType === 'HYBRID') {
+        try {
+          const pos = await getGPS();
+          payload.lat = pos.lat;
+          payload.lng = pos.lng;
+        } catch (err) {
+          // 駐點員工必須有 GPS，混合員工可跳過
+          if (currentEmployee.workType === 'ONSITE') {
+            showToast('error', 'GPS 無法取得', '請確認已開啟定位權限');
+            return;
+          }
+        }
+      }
+
+      try {
+        const res = await fetch(CONFIG.GAS_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+          redirect: 'follow'
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+          showToast('success', '打卡成功', data.message);
+          setTimeout(() => {
+            hideToast();
+            loadEmployeeData();  // 重新載入今日紀錄
+          }, 1500);
+        } else {
+          showToast('error', '打卡失敗', data.message);
+        }
+      } catch (err) {
+        showToast('error', '網路錯誤', err.message);
+      }
+    }
+
+    // ============================================================
+    // GPS 取得
+    // ============================================================
+    function getGPS() {
+      return new Promise((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error('裝置不支援定位'));
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          err => reject(new Error('定位失敗：' + err.message)),
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+        );
+      });
+    }
+
+    // ============================================================
+    // Toast
+    // ============================================================
+    function showToast(type, title, msg) {
+      const overlay = document.getElementById('overlay');
+      const icon = document.getElementById('toastIcon');
+      const titleEl = document.getElementById('toastTitle');
+      const msgEl = document.getElementById('toastMsg');
+
+      icon.className = 'toast-icon ' + type;
+
+      if (type === 'loading') {
+        icon.innerHTML = '<div class="spinner"></div>';
+      } else if (type === 'success') {
+        icon.innerHTML = '✓';
+      } else if (type === 'error') {
+        icon.innerHTML = '✕';
+      }
+
+      titleEl.textContent = title;
+      msgEl.textContent = msg;
+      overlay.classList.add('show');
+
+      // 錯誤訊息 3 秒後自動關閉
+      if (type === 'error') {
+        setTimeout(hideToast, 3000);
+      }
+    }
+
+    function hideToast() {
+      document.getElementById('overlay').classList.remove('show');
+    }
+
+    // ============================================================
+    // 啟動
+    // ============================================================
+    initLiff();
+  </script>
+</body>
+</html>
