@@ -541,11 +541,20 @@
     }
 
     function showInitError(msg) {
+      const userIdInfo = currentUser?.userId ? `
+        <div style="margin-top:24px;padding:16px;background:#f5f5f5;border-radius:12px;text-align:left;">
+          <div style="font-size:11px;color:#9ca3af;margin-bottom:6px;font-weight:700;letter-spacing:0.05em;">您的 LINE ID（請複製給 HR 綁定）</div>
+          <div style="font-family:'SF Mono',Menlo,Monaco,monospace;font-size:11px;color:#0A1A2E;word-break:break-all;background:white;padding:10px;border-radius:6px;border:1px solid #e5e7eb;user-select:all;-webkit-user-select:all;">${currentUser.userId}</div>
+          <div style="font-size:11px;color:#9ca3af;margin-top:8px;">名稱：${currentUser.displayName || ''}</div>
+        </div>
+      ` : '';
+
       document.getElementById('initScreen').innerHTML = `
-        <div style="text-align:center;padding:20px;">
+        <div style="text-align:center;padding:20px;max-width:400px;">
           <div style="font-size:48px;margin-bottom:16px;">⚠️</div>
-          <div style="font-size:16px;color:#0A1A2E;font-weight:700;margin-bottom:8px;">無法載入</div>
+          <div style="font-size:18px;color:#0A1A2E;font-weight:700;margin-bottom:8px;">無法載入</div>
           <div style="font-size:14px;color:#54595f;line-height:1.5;">${msg}</div>
+          ${userIdInfo}
         </div>
       `;
     }
