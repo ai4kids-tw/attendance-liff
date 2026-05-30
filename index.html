@@ -610,6 +610,7 @@
           const pos = await getGPS();
           payload.lat = pos.lat;
           payload.lng = pos.lng;
+          payload.acc = pos.accuracy;
         } catch (err) {
           // 駐點員工必須有 GPS，混合員工可跳過
           if (currentEmployee.workType === 'ONSITE') {
@@ -658,9 +659,9 @@
         }
 
         navigator.geolocation.getCurrentPosition(
-          pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+          pos => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude, accuracy: pos.coords.accuracy }),
           err => reject(new Error('定位失敗：' + err.message)),
-          { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+          { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
         );
       });
     }
